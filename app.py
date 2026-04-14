@@ -44,21 +44,27 @@ def embed_metadata():
 
     output_path = tmp_path + '_out.jpg'
 
+    # แยก keywords เป็น list
+    keywords_list = [kw.strip() for kw in keywords.split(',') if kw.strip()]
+
     cmd = [
         'exiftool',
         f'-Title={title}',
         f'-Description={description}',
-        f'-Keywords={keywords}',
         f'-IPTC:ObjectName={title}',
         f'-IPTC:Caption-Abstract={description}',
-        f'-IPTC:Keywords={keywords}',
         f'-XMP:Title={title}',
         f'-XMP:Description={description}',
-        f'-XMP:Subject={keywords}',
         f'-Copyright={copyright_text}',
-        '-o', output_path,
-        tmp_path
     ]
+
+    # เพิ่ม keyword ทีละตัว
+    for kw in keywords_list:
+        cmd.append(f'-IPTC:Keywords={kw}')
+        cmd.append(f'-XMP:Subject+={kw}')
+
+    cmd += ['-o', output_path, tmp_path]
+
     subprocess.run(cmd, check=True)
     os.unlink(tmp_path)
 
