@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import subprocess
 import tempfile
 import os
-import base64
+import requests as req
 
 app = Flask(__name__)
 
@@ -10,7 +10,7 @@ app = Flask(__name__)
 def embed_metadata():
     data = request.get_json(force=True)
     
-    image_b64 = data.get('image', '')
+    file_url = data.get('file_url', '')
     title = data.get('title', '')
     description = data.get('description', '')
     keywords = data.get('keywords', '')
@@ -18,7 +18,8 @@ def embed_metadata():
     copyright_text = data.get('copyright', '')
     filename = data.get('filename', 'output.jpg')
 
-    image_bytes = base64.b64decode(image_b64)
+    response = req.get(file_url)
+    image_bytes = response.content
     
     with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
         tmp.write(image_bytes)
@@ -46,6 +47,7 @@ def embed_metadata():
     os.unlink(tmp_path)
 
     with open(output_path, 'rb') as f:
+        import base64
         result_b64 = base64.b64encode(f.read()).decode()
     os.unlink(output_path)
 
